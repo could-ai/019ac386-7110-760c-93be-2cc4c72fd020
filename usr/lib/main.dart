@@ -3,6 +3,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/employees_screen.dart';
+import 'screens/create_announcement_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
         '/employees': (context) => const EmployeesScreen(),
+        '/create_announcement': (context) => const CreateAnnouncementScreen(),
       },
     );
   }

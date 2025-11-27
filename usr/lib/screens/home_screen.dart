@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/mock_data_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,63 +9,59 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Dados mockados de comunicados
-  final List<Map<String, String>> _announcements = [
-    {
-      'title': 'Reunião Geral',
-      'content': 'Haverá uma reunião geral nesta sexta-feira às 14h no auditório principal.',
-      'date': '10/05/2024',
-      'author': 'RH'
-    },
-    {
-      'title': 'Manutenção do Sistema',
-      'content': 'O sistema interno passará por manutenção no sábado à noite.',
-      'date': '08/05/2024',
-      'author': 'TI'
-    },
-    {
-      'title': 'Novo Benefício',
-      'content': 'Agora temos parceria com a academia SmartFit. Verifique seu e-mail para mais detalhes.',
-      'date': '05/05/2024',
-      'author': 'Diretoria'
-    },
-  ];
+  final _dataService = MockDataService();
+  late List<Map<String, String>> _announcements;
 
-  void _addAnnouncement() {
-    // Função placeholder para adicionar comunicado
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Novo Comunicado'),
-        content: const Text('Funcionalidade de adicionar comunicado será implementada com o banco de dados.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
+
+  void _refreshData() {
+    setState(() {
+      _announcements = _dataService.announcements;
+    });
+  }
+
+  void _navigateToAddAnnouncement() async {
+    final result = await Navigator.pushNamed(context, '/create_announcement');
+    if (result == true) {
+      _refreshData();
+    }
+  }
+
+  void _logout() {
+    _dataService.logout();
+    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = _dataService.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Comunicados'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshData,
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              accountName: const Text('Usuário Demo'),
-              accountEmail: const Text('usuario@empresa.com'),
+              accountName: Text(currentUser?['name'] ?? 'Usuário'),
+              accountEmail: Text(currentUser?['email'] ?? 'email@empresa.com'),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Text(
-                  'U',
+                  (currentUser?['name'] ?? 'U')[0].toUpperCase(),
                   style: TextStyle(fontSize: 24, color: Theme.of(context).primaryColor),
                 ),
               ),
@@ -72,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.dashboard),
               title: const Text('Comunicados'),
+              selected: true,
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
@@ -86,64 +84,66 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
               title: const Text('Sair', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-              },
+              onTap: _logout,
             ),
           ],
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _announcements.length,
-        itemBuilder: (context, index) {
-          final item = _announcements[index];
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        item['title']!,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+      body: _announcements.isEmpty
+          ? const Center(child: Text('Nenhum comunicado encontrado.'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _announcements.length,
+              itemBuilder: (context, index) {
+                final item = _announcements[index];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item['title']!,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                item['author']!,
+                                style: TextStyle(fontSize: 12, color: Colors.blue.shade900),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
-                          borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 8),
+                        Text(item['content']!),
+                        const SizedBox(height: 12),
+                        Text(
+                          item['date']!,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
-                        child: Text(
-                          item['author']!,
-                          style: TextStyle(fontSize: 12, color: Colors.blue.shade900),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(item['content']!),
-                  const SizedBox(height: 12),
-                  Text(
-                    item['date']!,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addAnnouncement,
+        onPressed: _navigateToAddAnnouncement,
         child: const Icon(Icons.add),
       ),
     );

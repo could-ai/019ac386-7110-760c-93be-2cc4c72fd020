@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/mock_data_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,10 +21,24 @@ class _LoginScreenState extends State<LoginScreen> {
       // Simulação de delay de rede
       await Future.delayed(const Duration(seconds: 1));
 
+      final success = MockDataService().login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
       if (mounted) {
         setState(() => _isLoading = false);
-        // Navegar para a Home após "login"
-        Navigator.pushReplacementNamed(context, '/home');
+        
+        if (success) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('E-mail ou senha inválidos'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -95,6 +110,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushNamed(context, '/register');
                   },
                   child: const Text('Não tem conta? Cadastre-se'),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Dica: Use admin@empresa.com / 123456',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),

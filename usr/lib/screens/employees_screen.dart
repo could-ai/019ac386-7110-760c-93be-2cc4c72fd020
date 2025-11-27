@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import '../services/mock_data_service.dart';
 
 class EmployeesScreen extends StatelessWidget {
   const EmployeesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Dados mockados de funcionários
-    final List<Map<String, String>> employees = [
-      {'name': 'Carlos Silva', 'role': 'Gerente de Vendas', 'email': 'carlos@empresa.com'},
-      {'name': 'Ana Souza', 'role': 'Desenvolvedora', 'email': 'ana@empresa.com'},
-      {'name': 'Roberto Dias', 'role': 'RH', 'email': 'roberto@empresa.com'},
-      {'name': 'Mariana Lima', 'role': 'Marketing', 'email': 'mariana@empresa.com'},
-    ];
+    // Obtendo dados do serviço
+    final employees = MockDataService().users;
 
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +19,7 @@ class EmployeesScreen extends StatelessWidget {
           final employee = employees[index];
           return ListTile(
             leading: CircleAvatar(
-              child: Text(employee['name']![0]),
+              child: Text(employee['name']![0].toUpperCase()),
             ),
             title: Text(employee['name']!),
             subtitle: Text(employee['role']!),

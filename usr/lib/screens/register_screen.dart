@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/mock_data_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,12 +23,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // Simulação de cadastro
       await Future.delayed(const Duration(seconds: 1));
 
+      final success = MockDataService().register(
+        _nameController.text,
+        _emailController.text,
+        _passwordController.text,
+        _selectedRole,
+      );
+
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cadastro realizado com sucesso!')),
-        );
-        Navigator.pop(context); // Voltar para login
+        
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cadastro realizado com sucesso! Faça login.')),
+          );
+          Navigator.pop(context); // Voltar para login
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Este e-mail já está cadastrado.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
